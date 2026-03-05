@@ -6,6 +6,9 @@
     "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "build:cf": "prisma generate && opennextjs-cloudflare build",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
@@ -19,6 +22,7 @@
   },
   "dependencies": {
     "@dagrejs/dagre": "^2.0.4",
+    "@opennextjs/cloudflare": "^1.17.1",
     "@prisma/adapter-mssql": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -54,6 +58,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.70.0"
   }
 }
