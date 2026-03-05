@@ -1,0 +1,128 @@
+// 資料庫架構管理平台 - 元數據儲存
+// 注意：此系統僅儲存 Schema 與流向描述，絕不儲存真實個資內容
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+}
+
+// 環境區域
+model Environment {
+  id          String   @id @default(cuid())
+  name        String   // 正式機 | 備援機 | 內部去個資機
+  zoneType    String   @map("zone_type") // production | backup | deidentified
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  nodes    Node[]
+  dataJobs DataJob[] @relation("SourceEnvironment")
+  targetJobs DataJob[] @relation("TargetEnvironment")
+}
+
+// 畫布節點
+model Node {
+  id           String   @id @default(cuid())
+  flowNodeId   String   @unique @map("flow_node_id") // React Flow 節點 ID
+  environmentId String @map("environment_id")
+  nodeType     String   @map("node_type") // app | database | analytics
+  label        String
+  metadata     String?  @db.NVarChar(Max) // 額外屬性 JSON (如 Azure DB, Local DB)
+  positionX    Float    @map("position_x")
+  positionY    Float    @map("position_y")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  environment Environment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  tables      Table[]
+  sourceJobs  DataJob[] @relation("SourceNode")
+  targetJobs  DataJob[] @relation("TargetNode")
+}
+
+// 資料表 (僅儲存結構，不儲存真實資料)
+model Table {
+  id        String   @id @default(cuid())
+  nodeId    String   @map("node_id")
+  name      String
+  schemaName String? @map("schema_name")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  node    Node     @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  columns Column[]
+  sps     StoredProcedure[]
+}
+
+// 欄位定義
+model Column {
+  id         String   @id @default(cuid())
+  tableId    String   @map("table_id")
+  name       String
+  dataType   String   @map("data_type")
+  piiLevel   String?  @map("pii_level") // L1 | L2 | L3 | L4 | null
+  isNullable Boolean  @default(true) @map("is_nullable")
+  orderIndex Int      @default(0) @map("order_index")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  table Table @relation(fields: [tableId], references: [id], onDelete: Cascade)
+}
+
+// 預存程序
+model StoredProcedure {
+  id        String   @id @default(cuid())
+  tableId   String   @map("table_id")
+  name      String
+  sqlContent String  @map("sql_content") @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  table Table @relation(fields: [tableId], references: [id], onDelete: Cascade)
+}
+
+// 資料同步 Job (Edge)
+model DataJob {
+  id             String   @id @default(cuid())
+  flowEdgeId     String   @unique @map("flow_edge_id")
+  sourceNodeId   String   @map("source_node_id")
+  targetNodeId   String   @map("target_node_id")
+  sourceEnvId    String   @map("source_env_id")
+  targetEnvId    String   @map("target_env_id")
+  hasMasking     Boolean  @default(false) @map("has_masking") // 是否含去個資邏輯
+  maskingRules   String?  @map("masking_rules") @db.NVarChar(Max) // JSON
+  description    String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  sourceNode   Node       @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  targetNode   Node       @relation("TargetNode", fields: [targetNodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sourceEnv    Environment @relation("SourceEnvironment", fields: [sourceEnvId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  targetEnv    Environment @relation("TargetEnvironment", fields: [targetEnvId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+// 審計日誌
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  action    String   // edit_column | edit_sp | edit_table | etc.
+  entityType String  @map("entity_type") // column | sp | table
+  entityId  String?  @map("entity_id")
+  diff      String?  @db.NVarChar(Max) // 變更前後差異 JSON
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+}
+
+// 使用者與 RBAC (簡化版，可接 NextAuth)
+model User {
+  id       String  @id @default(cuid())
+  email    String  @unique
+  role     String  @default("viewer") // admin | viewer
+  name     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}

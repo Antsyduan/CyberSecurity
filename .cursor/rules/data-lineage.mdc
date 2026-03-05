@@ -1,0 +1,21 @@
+---
+description: 資料庫架構管理平台開發規範
+globs: ["**/*.ts", "**/*.tsx"]
+---
+
+# 資料庫架構管理平台 - 開發規範
+
+## 敏感度處理 (Vibe Coding)
+
+- 在 Cursor 聊天或程式碼中，若涉及**真實欄位名稱**（如 Customer_SSN、Mobile_Phone），請改為 `Field_A`、`PII_Column` 等泛化名稱
+- 避免在註解、日誌或錯誤訊息中暴露真實個資欄位名稱
+
+## 資安要求
+
+- **禁止硬編碼**：所有資料庫連線字串必須使用 `process.env.DATABASE_URL`
+- **參數化查詢**：所有 DB 互動使用 Prisma 或參數化查詢，禁止字串拼接 SQL
+- **元數據隔離**：此系統只儲存 Schema 與流向描述，絕不儲存正式資料庫中的真實個資內容
+
+## 審計
+
+- 編輯欄位、修改 SP 等操作需透過 `createAuditLog` 記錄 User ID、時間與 Diff

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #09090b;
+  --foreground: #fafafa;
 }
 
 @theme inline {
@@ -12,15 +12,77 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  overflow-x: hidden;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* React Flow 深色主題覆寫 */
+.react-flow__attribution {
+  display: none;
+}
+
+.react-flow__controls {
+  box-shadow: none;
+}
+
+/* Controls 按鈕：高對比配色，提升辨識度 */
+.react-flow__controls {
+  --xy-controls-button-background-color: #27272a;
+  --xy-controls-button-background-color-hover: #3f3f46;
+  --xy-controls-button-color: #22d3ee;
+  --xy-controls-button-color-hover: #67e8f9;
+  --xy-controls-button-border-color: #52525b;
+  background-color: #18181b !important;
+  border: 1px solid rgba(82, 82, 91, 0.7) !important;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.5);
+}
+
+.react-flow__controls-button {
+  border-color: #52525b !important;
+  color: #22d3ee !important;
+}
+
+.react-flow__controls-button svg {
+  color: #22d3ee !important;
+  stroke: #22d3ee !important;
+}
+
+.react-flow__controls-button:hover {
+  background-color: #3f3f46 !important;
+  color: #67e8f9 !important;
+}
+
+.react-flow__controls-button:hover svg {
+  color: #67e8f9 !important;
+  stroke: #67e8f9 !important;
+}
+
+.react-flow__controls-button:disabled {
+  opacity: 0.4;
+}
+
+/* 鎖定時：互動按鈕改為黃色提示 */
+.react-flow__controls.controls-locked .react-flow__controls-interactive,
+.react-flow__controls.controls-locked .react-flow__controls-interactive svg {
+  color: #eab308 !important;
+  stroke: #eab308 !important;
+}
+
+.react-flow__controls.controls-locked .react-flow__controls-interactive:hover,
+.react-flow__controls.controls-locked .react-flow__controls-interactive:hover svg {
+  color: #facc15 !important;
+  stroke: #facc15 !important;
+}
+
+.react-flow__minimap {
+  border-radius: 8px;
+  overflow: hidden;
 }

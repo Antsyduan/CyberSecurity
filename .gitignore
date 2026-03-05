@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# SQLite 畫布資料（可選擇是否提交備份）
+/data/
+
 # vercel
 .vercel
 
