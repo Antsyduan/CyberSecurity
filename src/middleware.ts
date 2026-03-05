@@ -1,18 +1,38 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
+
+const PUBLIC_PATHS = ["/login", "/api/auth"];
+const API_AUTH_PATHS = ["/api/auth"];
 
 /**
  * 審計中介軟體：可在此攔截並記錄敏感操作
- * 實際審計寫入由 API 層的 createAuditLog 處理
+ * 登入保護：未登入者導向 /login
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // 公開路徑與 API 認證路徑不檢查
+  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  if (!token) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
   const response = NextResponse.next();
 
-  // 可在此加入 request 日誌（不記錄敏感 body）
   if (process.env.NODE_ENV === "development") {
-    const url = request.nextUrl.pathname;
-    if (url.startsWith("/api/") && request.method !== "GET") {
-      console.log(`[Middleware] ${request.method} ${url}`);
+    if (pathname.startsWith("/api/") && !API_AUTH_PATHS.some((p) => pathname.startsWith(p)) && request.method !== "GET") {
+      console.log(`[Middleware] ${request.method} ${pathname}`);
     }
   }
 
@@ -20,5 +40,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

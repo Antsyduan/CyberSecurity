@@ -28,7 +28,8 @@ import { AddNodeDropdown } from "./AddNodeDropdown";
 import type { NodeTypeToAdd, DatabasePurpose } from "./AddNodeDropdown";
 import { NodeEditPanel } from "@/components/sidebar/NodeEditPanel";
 import { Button } from "@/components/ui/button";
-import { Trash2, LayoutGrid } from "lucide-react";
+import { Trash2, LayoutGrid, LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const nodeTypes: NodeTypes = {
@@ -572,6 +573,15 @@ export function DataFlowCanvas() {
             僅儲存 Schema 與流向
           </span>
           <span className="hidden text-zinc-500 sm:inline">拖曳節點圓點建立連線 · 選取後 Del 刪除 · 滾輪縮放 · 拖曳空白處平移</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-zinc-400 hover:text-zinc-200"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+          >
+            <LogOut className="h-4 w-4" />
+            登出
+          </Button>
         </div>
       </header>
       <main className="relative flex-1 overflow-hidden">
